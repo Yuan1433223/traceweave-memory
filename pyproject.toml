@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "traceweave-memory"
+version = "0.1.0"
+description = "Evidence-grounded multimodal memory with temporal links and budget-aware retrieval"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = "MIT"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "pydantic>=2.10,<3",
+  "pillow>=11,<13",
+  "uvicorn>=0.34,<1",
+]
+
+[project.urls]
+Repository = "https://github.com/Yuan1433223/traceweave-memory"
+
+[project.scripts]
+traceweave = "traceweave_memory.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "httpx>=0.28,<1", "ruff>=0.11,<1"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/traceweave_memory"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--basetemp=tmp/pytest"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
