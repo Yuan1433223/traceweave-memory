@@ -1,0 +1,16 @@
+from typing import Protocol
+
+from traceweave_memory.domain import Evidence
+
+
+class Media(Protocol):
+    def decode(self, url: str) -> tuple[bytes, str]: ...
+    def put(self, scope: str, raw: bytes, subtype: str) -> dict: ...
+    def get(self, scope: str, ref: dict) -> str: ...
+
+
+class Repository(Protocol):
+    def add(
+        self, scope: str, request_id: str, session_id: str, body_hash: str, records: list[Evidence]
+    ) -> None: ...
+    def search(self, scope: str, tokens: list[str], limit: int) -> list[Evidence]: ...
