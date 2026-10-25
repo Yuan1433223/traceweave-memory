@@ -4,7 +4,7 @@ Evidence-grounded multimodal memory with temporal links and budget-aware retriev
 
 面向 AML 多模态记忆评测的开源 Add/Search 服务。保留原始图文证据，以相同 user_id 隔离写入与检索。项目进度与未完成项见 [TODO](TODO.md)。
 
-当前可运行 **B0 离线词法基线**：同步写入、SQLite/FTS5、作用域内 BM25、原图回传、幂等与认证，以及 Mem-Gallery 本地来源召回评估。模型注释、语义向量、时间关联、最终回答评分及正式赛事评测尚未完成。B0 只检索已有文本/caption，不理解图片内容；纯图查询返回空。
+提供 **B0 离线词法基线**：SQLite/FTS5、作用域内 BM25、原图回传、幂等与认证，以及 Mem-Gallery 来源召回评估。B0 检索原文/caption，纯图查询返回空；独立的 **DeepSeek 模型契约检查**验证图文 JSON、候选 ID 与预算记账，尚未接入 Add/Search。
 
 ## Install and verify
 
@@ -17,7 +17,7 @@ uv run ruff check src tests
 uv run ruff format --check src tests
 ```
 
-测试临时目录为被忽略的 `tmp/pytest`，不依赖模型账户或私人数据。实际 Windows/Python 环境和检查边界见 [A—C 验收记录](docs/验收记录/A-C-2026-10-25.md)。`uv.lock` 锁定运行/开发依赖，未锁定操作系统和 Python 补丁版本。
+离线测试不依赖模型账户或私人数据，临时目录为被忽略的 `tmp/pytest`。`uv.lock` 锁定运行/开发依赖，未锁定操作系统和 Python 补丁版本。
 
 ## Run locally
 
@@ -27,7 +27,7 @@ uv run traceweave serve --host 127.0.0.1 --port 8000
 
 接口为 GET `/health`、POST `/add` 和 POST `/search`。默认数据目录 `data/service`；无Key只用于本机开发。对外运行前设置非空 `TW_API_KEY`，CLI 不允许无Key绑定非回环地址。生产部署还需 HTTPS 与容量验证。
 
-可复制 `.env.example` 为 `.env` 后使用 `uv run --env-file .env traceweave serve`。服务认证Key与OpenRouter Key不同；B0不读取或调用模型配置。`.env`、`data/`、`runs/`、`tmp/` 和数据库均被忽略。
+可复制空白 `.env.example` 为 `.env` 后使用 `uv run --env-file .env traceweave serve`。真实密钥仅填 `.env`，不能填可提交的示例文件。服务认证Key与模型API Key不同；B0不读取或调用模型配置。`.env`、`data/`、`runs/`、`tmp/` 和数据库均被忽略。
 
 最小文本调用（另开PowerShell）：
 
@@ -54,7 +54,19 @@ uv run traceweave evaluate-gallery --topic Astronomy_Physics_Scientific_Experime
 
 输出目录必须不存在，防止复用旧状态。检索输出只含索引、类别、计时和指标；数据/媒体/SQLite/逐题结果留在忽略目录。本地来源召回不是QA准确率，也不等于AML官方分数。
 
-首个Architecture留出话题因原始图片超出官方10 MiB上限明确失败；完整记录和替代话题选择规则见评测方案，未静默缩图或跳题。
+## Model contract check
+
+在私有.env设置DEEPSEEK_API_KEY及模板中的DeepSeek配置后，从仓库根目录执行：
+
+```powershell
+uv run --frozen --env-file .env traceweave model-check --output runs/d1-check-new
+```
+
+这会付费调用官方 DeepSeek API，使用合成材料检查文本 JSON、图片 OCR/颜色形状和候选 ID 排序，不发送数据集。输出目录须不存在；缺少密钥直接停止。
+
+各次运行共用 `data/model-budget.sqlite3`，默认累计最多5美元，只能降低既有上限。调用前预留，按 usage 保守估算结算，未知费用保留占额；勿删除账本或换目录重置预算。机制和限制见 [开发设计](docs/开发设计.md#模型调用与预算)。
+
+历史运行结果见 [A—C 基线](docs/验收记录/A-C-2026-10-25.md)与[模型契约检查](docs/验收记录/D.1-2026-10-25.md)；后续任务见 TODO。
 
 ## Design and provenance
 
@@ -63,4 +75,4 @@ uv run traceweave evaluate-gallery --topic Astronomy_Physics_Scientific_Experime
 - [评测方案](docs/评测方案.md) · [参考与改动](docs/参考与改动.md)
 - [协作入口](AGENTS.md) · [任务与进度](TODO.md) · [变化记录](CHANGELOG.md)
 
-MIT License。当前B0独立实现；参考项目及数据来源在引用清单中披露。未声称取得AML成绩。
+MIT License。实现与来源归属见引用清单。

@@ -14,6 +14,7 @@ dependencies = [
   "pydantic>=2.10,<3",
   "pillow>=11,<13",
   "uvicorn>=0.34,<1",
+  "httpx>=0.28,<1",
 ]
 
 [project.urls]
@@ -23,7 +24,7 @@ Repository = "https://github.com/Yuan1433223/traceweave-memory"
 traceweave = "traceweave_memory.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8,<10", "httpx>=0.28,<1", "ruff>=0.11,<1"]
+dev = ["pytest>=8,<10", "ruff>=0.11,<1"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/traceweave_memory"]
